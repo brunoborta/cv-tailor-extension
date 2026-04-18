@@ -1,0 +1,16 @@
+# Demo and reference files
+cv-demo/
+
+# AI session files
+NEXT_SESSION.md
+
+# Source maps
+lib/build/*.map
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

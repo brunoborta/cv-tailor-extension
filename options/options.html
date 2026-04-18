@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CV Tailor — Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #f8f9ff;
+      padding: 0 0 32px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 32px;
+      margin-bottom: 32px;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .container { max-width: 700px; margin: 0 auto; padding: 0 32px; }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #e8eaf0;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: #888;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab.active { color: #764ba2; border-bottom-color: #764ba2; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .card {
+      background: white;
+      border: 1px solid #e8eaf0;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card h2 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: #333; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      border: 1px solid #d0d3e0;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #1a1a2e;
+      background: white;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: #764ba2;
+      box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-group textarea.cv-text { min-height: 300px; font-family: monospace; font-size: 12px; }
+
+    .hint { font-size: 11px; color: #999; margin-top: 4px; }
+
+    .languages-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .lang-chip {
+      background: #f0f2ff;
+      border: 1px solid #c4b5fd;
+      border-radius: 14px;
+      padding: 4px 10px 4px 12px;
+      font-size: 12px;
+      color: #5b21b6;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .lang-chip button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9f7aea;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0;
+    }
+    .lang-add { display: flex; gap: 8px; }
+    .lang-add input {
+      flex: 1;
+      border: 1px solid #d0d3e0;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+    .lang-add button {
+      background: #f0f2ff;
+      border: 1px solid #c4b5fd;
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #5b21b6;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .provider-presets { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .preset-btn {
+      padding: 6px 14px;
+      border: 1px solid #d0d3e0;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      background: white;
+      color: #555;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover, .preset-btn.active {
+      border-color: #764ba2;
+      color: #764ba2;
+      background: #f0f2ff;
+    }
+    .preset-btn.free-tag::after {
+      content: ' ✓free';
+      color: #38a169;
+      font-size: 10px;
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-save:hover { opacity: 0.9; }
+
+    #uploadArea {
+      border: 2px dashed #c4b5fd;
+      border-radius: 10px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      background: #faf9ff;
+    }
+    #uploadArea:hover, #uploadArea.dragover {
+      background: #f0f2ff;
+      border-color: #764ba2;
+    }
+    #uploadArea.has-file {
+      border-style: solid;
+      border-color: #38a169;
+      background: #f0fff4;
+      cursor: default;
+    }
+    #dropZoneIcon { font-size: 28px; margin-bottom: 8px; }
+    #dropZoneText { font-size: 13px; font-weight: 600; color: #444; margin-bottom: 4px; }
+    #dropZoneSubtext { font-size: 12px; color: #888; }
+    #clearFileBtn {
+      margin-top: 10px;
+      background: none;
+      border: 1px solid #e53e3e;
+      color: #e53e3e;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #clearFileBtn:hover { background: #fff5f5; }
+
+    .save-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 200;
+    }
+    .save-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .save-card {
+      background: white;
+      border-radius: 16px;
+      padding: 36px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      transform: scale(0.9);
+      transition: transform 0.2s ease;
+    }
+    .save-overlay.visible .save-card { transform: scale(1); }
+    .save-check {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #38a169;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .save-check svg { stroke: white; }
+    .save-card span {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>CV Tailor Settings</h1>
+    <p>Configure your profile and AI provider</p>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <div class="tab active" data-tab="profile">Profile</div>
+      <div class="tab" data-tab="ai">AI Provider</div>
+    </div>
+
+    <!-- Profile Tab -->
+    <div class="tab-panel active" id="tab-profile">
+      <div class="card">
+        <h2>Personal Information</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="firstName" placeholder="John" />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="lastName" placeholder="Doe" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="phone" placeholder="+49 xxx xxxx xxxx" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="location" placeholder="Munich, Germany" />
+            <p class="hint">City and country — e.g. "Munich, Germany". Used in CV and form filling.</p>
+          </div>
+          <div class="form-group">
+            <label>LinkedIn (optional)</label>
+            <input type="text" id="linkedin" placeholder="linkedin.com/in/yourprofile" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Languages</h2>
+        <div class="languages-list" id="languagesList"></div>
+        <div class="lang-add">
+          <input type="text" id="langInput" placeholder="e.g. Portuguese (Native)" />
+          <button id="addLangBtn">+ Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Your CV / Background</h2>
+        <div class="form-group">
+          <input type="file" id="cvFile" accept=".pdf,.txt" style="display:none" />
+          <div id="uploadArea">
+            <div id="dropZoneIcon">📄</div>
+            <div id="dropZoneText">Drop your PDF or .txt here</div>
+            <div id="dropZoneSubtext">or click to browse</div>
+            <button type="button" id="clearFileBtn" style="display:none">✕ Remove file</button>
+          </div>
+          <p class="hint" id="uploadHint">Text will be extracted automatically. Max file size: 5MB.</p>
+        </div>
+        <div class="form-group">
+          <label>Or paste CV text</label>
+          <textarea class="cv-text" id="cvText" placeholder="Paste your CV here — work experience, education, skills, projects. The more detail, the better the tailoring."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Provider Tab -->
+    <div class="tab-panel" id="tab-ai">
+      <div class="card">
+        <h2>AI Provider — <span id="providerLabel">DeepSeek</span></h2>
+
+        <div class="provider-presets">
+          <button class="preset-btn free-tag" data-provider="deepseek">DeepSeek</button>
+          <button class="preset-btn free-tag" data-provider="groq">Groq</button>
+          <button class="preset-btn" data-provider="claude">Claude</button>
+          <button class="preset-btn" data-provider="openai">OpenAI</button>
+          <button class="preset-btn" data-provider="custom">Custom</button>
+        </div>
+
+        <input type="hidden" id="provider" value="deepseek" />
+        <div class="form-group">
+          <label>API Key</label>
+          <div style="position:relative">
+            <input type="password" id="apiKey" placeholder="sk-..." style="padding-right:38px" />
+            <button id="toggleApiKey" title="Show/hide key" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:0;line-height:0;display:flex;align-items:center"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+          <p class="hint" id="apiKeyHint">Stored locally in your browser only.</p>
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="model" placeholder="deepseek-chat" />
+        </div>
+        <div class="form-group" id="baseUrlGroup" style="display:none">
+          <label>Base URL</label>
+          <input type="text" id="baseUrl" placeholder="https://api.example.com/v1/chat/completions" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Output Language</h2>
+        <div class="form-group">
+          <label>CV and cover letter language</label>
+          <select id="outputLanguage">
+            <option value="auto">Auto — match the job description language</option>
+            <option value="English">English</option>
+            <option value="German">German (Deutsch)</option>
+            <option value="Portuguese">Portuguese (Português)</option>
+            <option value="Spanish">Spanish (Español)</option>
+            <option value="French">French (Français)</option>
+          </select>
+          <p class="hint">Auto detects the language from the job posting. Override if the output keeps coming out in the wrong language.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-save" id="saveBtn">Save Settings</button>
+  </div>
+
+  <div class="save-overlay" id="saveOverlay">
+    <div class="save-card">
+      <div class="save-check">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <span>Saved!</span>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
