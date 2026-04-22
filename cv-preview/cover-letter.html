@@ -63,9 +63,6 @@
     .cl-signature { margin-bottom: 4px; }
     .cl-enclosure { }
 
-    #clPage.editing { outline: 2px dashed #667eea; outline-offset: -2px; cursor: text; }
-    #editBtn.active { background: #48bb78; }
-
     @media print {
       body { background: white; padding: 0; }
       .toolbar { display: none; }
@@ -76,11 +73,8 @@
 <body>
   <div class="toolbar">
     <span id="toolbarTitle">Cover Letter</span>
-    <div style="display:flex;align-items:center;gap:10px">
-      <span style="font-size:12px;opacity:0.6">In the print dialog, set Destination to <strong>Save as PDF</strong></span>
-      <button id="editBtn">Edit</button>
-      <button id="printBtn">Save as PDF</button>
-    </div>
+    <span style="font-size:12px;opacity:0.6">In the print dialog, set Destination to <strong>Save as PDF</strong></span>
+    <button id="printBtn">Save as PDF</button>
   </div>
 
   <div class="page" id="clPage">

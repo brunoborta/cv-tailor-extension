@@ -1,4 +1,14 @@
 async function init() {
+  const isPrint = new URLSearchParams(location.search).has('print');
+
+  if (isPrint) {
+    document.querySelector('.toolbar').style.display = 'none';
+  } else {
+    document.getElementById('printBtn').addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/index.html') + '?print=1' });
+    });
+  }
+
   const { cv_tailor_preview } = await chrome.storage.local.get('cv_tailor_preview');
 
   if (!cv_tailor_preview) {
@@ -15,6 +25,15 @@ async function init() {
     `${mode === 'optimize' ? 'ATS Optimize' : 'From Scratch'} — ${jobTitle || 'Job Application'}`;
 
   document.getElementById('cvContainer').innerHTML = renderCV(result, personal);
+
+  if (isPrint) {
+    // MV3 blocks window.print() from chrome-extension:// pages via inline handlers (CSP) and
+    // also blocks it when called directly on the preview tab. Workaround: open a dedicated
+    // ?print=1 tab via chrome.runtime.getURL so the call comes from a proper script context,
+    // then close this tab once the print dialog is dismissed.
+    window.addEventListener('afterprint', () => window.close());
+    window.print();
+  }
 }
 
 function renderCV(cvData, personal) {
