@@ -210,6 +210,7 @@ async function generateCV() {
         result: cvResult,
         profile,
         jobTitle: jobInfo?.title,
+        jobCompany: jobInfo?.company,
         mode: generationMode,
         generatedAt: new Date().toISOString(),
       },

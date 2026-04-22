@@ -106,6 +106,14 @@
       font-size: 9.5pt;
     }
 
+    /* ─── EDIT MODE ──────────────────────────────────── */
+    #cvContainer.editing .opt-page {
+      outline: 2px dashed #667eea;
+      outline-offset: -2px;
+      cursor: text;
+    }
+    #editBtn.active { background: #48bb78; }
+
     /* ─── PRINT ───────────────────────────────────────── */
     @media print {
       body { background: white; padding: 0; }
@@ -118,8 +126,11 @@
 <body>
   <div class="toolbar">
     <span id="toolbarTitle">CV Preview</span>
-    <span style="font-size:12px;opacity:0.6">In the print dialog, set Destination to <strong>Save as PDF</strong></span>
-    <button id="printBtn">Print / Save as PDF</button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;opacity:0.6">In the print dialog, set Destination to <strong>Save as PDF</strong></span>
+      <button id="editBtn">Edit</button>
+      <button id="printBtn">Print / Save as PDF</button>
+    </div>
   </div>
 
   <div id="cvContainer">

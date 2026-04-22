@@ -4,27 +4,54 @@ async function init() {
   if (isPrint) {
     document.querySelector('.toolbar').style.display = 'none';
   } else {
+    let isEditing = false;
+    document.getElementById('editBtn').addEventListener('click', () => {
+      isEditing = !isEditing;
+      const page = document.querySelector('.opt-page');
+      if (page) page.contentEditable = isEditing ? 'true' : 'false';
+      document.getElementById('cvContainer').classList.toggle('editing', isEditing);
+      const btn = document.getElementById('editBtn');
+      btn.textContent = isEditing ? 'Done' : 'Edit';
+      btn.classList.toggle('active', isEditing);
+    });
+
+    // Serialize current DOM (preserving any edits) into storage before opening the print tab
     document.getElementById('printBtn').addEventListener('click', () => {
-      chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/index.html') + '?print=1' });
+      const editedHtml = document.getElementById('cvContainer').innerHTML;
+      chrome.storage.local.set({ cv_tailor_print_html: editedHtml }, () => {
+        chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/index.html') + '?print=1' });
+      });
     });
   }
 
-  const { cv_tailor_preview } = await chrome.storage.local.get('cv_tailor_preview');
+  const { cv_tailor_preview, cv_tailor_print_html } = await chrome.storage.local.get([
+    'cv_tailor_preview',
+    'cv_tailor_print_html',
+  ]);
 
-  if (!cv_tailor_preview) {
-    document.getElementById('cvContainer').innerHTML =
-      '<p style="font-family:sans-serif;color:#e53e3e;text-align:center;padding:40px;background:white;width:210mm;margin:0 auto">No CV generated yet. Go back and click "Generate Tailored CV" first.</p>';
-    return;
+  if (isPrint && cv_tailor_print_html) {
+    document.getElementById('cvContainer').innerHTML = cv_tailor_print_html;
+    chrome.storage.local.remove('cv_tailor_print_html');
+    const { jobTitle, jobCompany } = cv_tailor_preview || {};
+    document.title = ['CV', jobCompany, jobTitle].filter(Boolean).join(' - ');
+  } else {
+    if (!cv_tailor_preview) {
+      document.getElementById('cvContainer').innerHTML =
+        '<p style="font-family:sans-serif;color:#e53e3e;text-align:center;padding:40px;background:white;width:210mm;margin:0 auto">No CV generated yet. Go back and click "Generate Tailored CV" first.</p>';
+      return;
+    }
+
+    const { result, profile, jobTitle, jobCompany, mode } = cv_tailor_preview;
+    const personal = profile?.personal || {};
+
+    document.title = isPrint
+      ? ['CV', jobCompany, jobTitle].filter(Boolean).join(' - ')
+      : `CV — ${personal.name || 'Preview'}`;
+    document.getElementById('toolbarTitle').textContent =
+      `${mode === 'optimize' ? 'ATS Optimize' : 'From Scratch'} — ${jobTitle || 'Job Application'}`;
+
+    document.getElementById('cvContainer').innerHTML = renderCV(result, personal);
   }
-
-  const { result, profile, jobTitle, mode } = cv_tailor_preview;
-  const personal = profile?.personal || {};
-
-  document.title = `CV — ${personal.name || 'Preview'}`;
-  document.getElementById('toolbarTitle').textContent =
-    `${mode === 'optimize' ? 'ATS Optimize' : 'From Scratch'} — ${jobTitle || 'Job Application'}`;
-
-  document.getElementById('cvContainer').innerHTML = renderCV(result, personal);
 
   if (isPrint) {
     // MV3 blocks window.print() from chrome-extension:// pages via inline handlers (CSP) and
