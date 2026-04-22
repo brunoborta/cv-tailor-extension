@@ -252,6 +252,7 @@ function loadProfile(profile) {
   document.getElementById('phone').value = profile.personal?.phone || '';
   document.getElementById('location').value = profile.personal?.location || '';
   document.getElementById('linkedin').value = profile.personal?.linkedin || '';
+  document.getElementById('hearAboutUs').value = profile.personal?.hearAboutUs || '';
   document.getElementById('cvText').value = profile.cvText || '';
   if (profile.cvFileName) {
     currentPdfFileName = profile.cvFileName;
@@ -276,6 +277,7 @@ function loadAIConfig(config) {
   document.getElementById('model').value = config.model || '';
   document.getElementById('baseUrl').value = config.baseUrl || '';
   document.getElementById('outputLanguage').value = config.outputLanguage || 'auto';
+  document.getElementById('autofill').checked = config.autofill || false;
 
   const activeBtn = document.querySelector(`.preset-btn[data-provider="${provider}"]`);
   if (activeBtn) {
@@ -303,6 +305,7 @@ async function save() {
     model: document.getElementById('model').value.trim() || DEFAULT_MODELS[provider],
     baseUrl: document.getElementById('baseUrl').value.trim() || undefined,
     outputLanguage: document.getElementById('outputLanguage').value,
+    autofill: document.getElementById('autofill').checked,
   };
 
   await chrome.storage.local.set({ profile, aiConfig });
@@ -332,6 +335,7 @@ function buildPersonal() {
     phoneLocal,
     location: document.getElementById('location').value.trim(),
     linkedin: document.getElementById('linkedin').value.trim(),
+    hearAboutUs: document.getElementById('hearAboutUs').value.trim() || 'LinkedIn',
   };
 }
 

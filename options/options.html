@@ -84,6 +84,8 @@
     .form-group textarea.cv-text { min-height: 300px; font-family: monospace; font-size: 12px; }
 
     .hint { font-size: 11px; color: #999; margin-top: 4px; }
+    .toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; }
+    .toggle-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: #667eea; }
 
     .languages-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .lang-chip {
@@ -286,6 +288,13 @@
             <input type="text" id="linkedin" placeholder="linkedin.com/in/yourprofile" />
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>How did you hear about us? (default answer)</label>
+            <input type="text" id="hearAboutUs" placeholder="LinkedIn" />
+            <p class="hint">Used to auto-answer "How did you hear about this job?" questions in forms.</p>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -294,6 +303,17 @@
         <div class="lang-add">
           <input type="text" id="langInput" placeholder="e.g. Portuguese (Native)" />
           <button id="addLangBtn">+ Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Behavior</h2>
+        <div class="form-group">
+          <label class="toggle-label">
+            <input type="checkbox" id="autofill" />
+            <span>Auto-fill form after generating CV</span>
+          </label>
+          <p class="hint">When enabled, the form is filled automatically after CV generation — no need to click "Fill Form".</p>
         </div>
       </div>
 
