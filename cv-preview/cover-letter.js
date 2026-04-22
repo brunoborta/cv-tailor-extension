@@ -8,21 +8,21 @@ async function init() {
   }
 
   const { result, profile, jobTitle } = cv_tailor_preview;
-  const p = profile?.personal || {};
-  const cl = result.coverLetter;
+  const personal = profile?.personal || {};
+  const coverLetter = result.coverLetter;
 
-  document.title = `Cover Letter — ${p.name || ''}`;
+  document.title = `Cover Letter — ${personal.name || ''}`;
   document.getElementById('toolbarTitle').textContent = `Cover Letter — ${jobTitle || 'Job Application'}`;
 
-  const paragraphs = Array.isArray(cl) ? cl : [cl];
-  const contactLine2 = [p.phone, p.email].filter(Boolean).join(' • ');
+  const paragraphs = Array.isArray(coverLetter) ? coverLetter : [coverLetter];
+  const contactLine = [personal.phone, personal.email].filter(Boolean).join(' • ');
 
   document.getElementById('clPage').innerHTML = `
     <div class="cl-header">
-      <div class="cl-name">${esc(p.name || '')}</div>
-      ${p.location ? `<div class="cl-location">${esc(p.location)}</div>` : ''}
-      ${contactLine2 ? `<div class="cl-contact">${esc(contactLine2)}</div>` : ''}
-      ${p.linkedin ? `<div class="cl-contact">${esc(p.linkedin)}</div>` : ''}
+      <div class="cl-name">${esc(personal.name || '')}</div>
+      ${personal.location ? `<div class="cl-location">${esc(personal.location)}</div>` : ''}
+      ${contactLine ? `<div class="cl-contact">${esc(contactLine)}</div>` : ''}
+      ${personal.linkedin ? `<div class="cl-contact">${esc(personal.linkedin)}</div>` : ''}
     </div>
     <hr class="cl-rule" />
 
@@ -33,7 +33,7 @@ async function init() {
 
     <div class="cl-closing">
       <div class="cl-sincerely">Sincerely,</div>
-      <div class="cl-signature">${esc(p.name || '')}</div>
+      <div class="cl-signature">${esc(personal.name || '')}</div>
       <div class="cl-enclosure">Enclosure</div>
     </div>
   `;

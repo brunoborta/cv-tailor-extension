@@ -97,78 +97,21 @@
 
     .opt-langs { text-align: center; font-size: 10pt; }
 
-    .opt-footer {
-      text-align: right;
-      font-size: 8pt;
-      color: #aaa;
-      margin-top: 16px;
-      font-style: italic;
+    .opt-skills-flat { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .opt-skill-chip {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 9.5pt;
     }
-
-    /* ─── SCRATCH TEMPLATE ────────────────────────────── */
-    .scr-page {
-      padding: 14mm 14mm 14mm;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: 10pt;
-      color: #222;
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-
-    .scr-header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: start;
-      margin-bottom: 18px;
-    }
-    .scr-name { font-size: 34pt; font-weight: 800; line-height: 1.1; color: #111; }
-    .scr-contact { font-size: 9.5pt; text-align: right; line-height: 1.7; }
-    .scr-contact strong { display: block; }
-
-    .scr-body { display: grid; grid-template-columns: 1fr 180px; gap: 24px; }
-    .scr-left { }
-    .scr-right { }
-
-    .scr-section-title {
-      font-size: 9pt;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: #1a6fbf;
-      margin-bottom: 8px;
-      margin-top: 16px;
-    }
-    .scr-section-title:first-child { margin-top: 0; }
-
-    .scr-job { margin-bottom: 12px; }
-    .scr-job-role { font-weight: 700; font-size: 10.5pt; }
-    .scr-job-period { font-size: 8.5pt; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin: 1px 0 4px; }
-    .scr-job-desc { font-size: 9.5pt; line-height: 1.5; color: #333; }
-
-    .scr-edu-entry { margin-bottom: 6px; }
-    .scr-edu-degree { font-weight: 700; }
-    .scr-edu-inst { font-size: 9pt; color: #555; }
-
-    .scr-practical li {
-      font-weight: 700;
-      font-size: 10pt;
-      margin-bottom: 4px;
-      list-style: none;
-    }
-
-    .scr-skill { margin-bottom: 5px; font-size: 9.5pt; }
-
-    .scr-lang { margin-bottom: 8px; }
-    .scr-lang-name { font-weight: 700; font-size: 10pt; }
-    .scr-lang-level { font-size: 9pt; color: #444; }
-    .scr-lang-note { font-size: 8.5pt; color: #666; font-style: italic; margin-top: 1px; }
 
     /* ─── PRINT ───────────────────────────────────────── */
     @media print {
       body { background: white; padding: 0; }
       .toolbar { display: none; }
       .page { box-shadow: none; margin: 0; width: 100%; }
-      .opt-page, .scr-page { padding: 12mm 14mm; }
+      .opt-page { padding: 12mm 14mm; }
     }
   </style>
 </head>

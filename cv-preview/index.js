@@ -8,31 +8,26 @@ async function init() {
   }
 
   const { result, profile, jobTitle, mode } = cv_tailor_preview;
-  const p = profile?.personal || {};
+  const personal = profile?.personal || {};
 
-  document.title = `CV — ${p.name || 'Preview'}`;
-  document.getElementById('toolbarTitle').textContent = `${mode === 'optimize' ? 'ATS Optimize' : 'From Scratch'} — ${jobTitle || 'Job Application'}`;
+  document.title = `CV — ${personal.name || 'Preview'}`;
+  document.getElementById('toolbarTitle').textContent =
+    `${mode === 'optimize' ? 'ATS Optimize' : 'From Scratch'} — ${jobTitle || 'Job Application'}`;
 
-  const html = mode === 'optimize'
-    ? renderOptimize(result, p)
-    : renderScratch(result, p);
-
-  document.getElementById('cvContainer').innerHTML = html;
+  document.getElementById('cvContainer').innerHTML = renderCV(result, personal);
 }
 
-// ─── OPTIMIZE TEMPLATE ────────────────────────────────────────────────────────
+function renderCV(cvData, personal) {
+  const contactLine = [personal.location, personal.phone, personal.email].filter(Boolean).join(' • ');
+  const summaryParas = Array.isArray(cvData.summary) ? cvData.summary : [cvData.summary].filter(Boolean);
 
-function renderOptimize(r, p) {
-  const contactLine = [p.location, p.phone, p.email].filter(Boolean).join(' • ');
-  const summaryParas = Array.isArray(r.summary) ? r.summary : [r.summary].filter(Boolean);
+  const skillsHtml = (cvData.skills || []).length
+    ? `<div class="opt-section-title">Skills</div>
+       <div class="opt-skills-flat">${cvData.skills.map(skill => `<span class="opt-skill-chip">${esc(skill)}</span>`).join('')}</div>
+       <hr class="opt-rule" />`
+    : '';
 
-  const skillsRows = Object.entries(r.technicalSkills || {}).map(([cat, skills]) => `
-    <tr>
-      <td class="opt-skills-cat">${esc(cat)}:</td>
-      <td>${esc(skills.join(', '))}</td>
-    </tr>`).join('');
-
-  const experienceHtml = (r.experience || []).map(job => `
+  const experienceHtml = (cvData.experience || []).map(job => `
     <div class="opt-job">
       <div class="opt-job-header">
         <div>
@@ -42,27 +37,25 @@ function renderOptimize(r, p) {
         <div class="opt-job-company">${esc(job.company)}</div>
       </div>
       ${job.description ? `<div class="opt-job-desc">${esc(job.description)}</div>` : ''}
-      ${job.bullets?.length ? `<ul class="opt-bullets">${job.bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
-      ${job.achievements?.length ? `
-        <div class="opt-achievements-label">Key Achievements:</div>
-        <ul class="opt-bullets">${job.achievements.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
-      ` : ''}
+      ${job.bullets?.length ? `<ul class="opt-bullets">${job.bullets.map(bullet => `<li>${esc(bullet)}</li>`).join('')}</ul>` : ''}
     </div>`).join('');
 
-  const educationHtml = (r.education || []).map(e => `
+  const educationHtml = (cvData.education || []).map(entry => `
     <div class="opt-edu-entry">
-      <div class="opt-edu-degree">${esc(e.degree)}</div>
-      <div class="opt-edu-inst">${esc(e.institution)}</div>
+      <div class="opt-edu-degree">${esc(entry.degree)}</div>
+      <div class="opt-edu-inst">${esc(entry.institution)}</div>
     </div>`).join('');
 
-  const langsHtml = (r.languages || []).join(' • ');
+  const languagesHtml = (cvData.languages || []).join(' • ');
 
   return `
     <div class="page">
       <div class="opt-page">
+
         <div class="opt-header">
-          <div class="opt-name">${esc(p.name || '')}</div>
-          ${r.title ? `<div class="opt-title">${esc(r.title)}</div>` : ''}
+          <div class="opt-name">${esc(personal.name || '')}</div>
+          ${cvData.title ? `<div class="opt-title">${esc(cvData.title)}</div>` : ''}
+          ${personal.linkedin ? `<div class="opt-contact">${esc(personal.linkedin)}</div>` : ''}
           ${contactLine ? `<div class="opt-contact">${esc(contactLine)}</div>` : ''}
         </div>
 
@@ -70,15 +63,10 @@ function renderOptimize(r, p) {
 
         ${summaryParas.length ? `
         <div class="opt-section-title">Summary</div>
-        <div class="opt-summary">
-          ${summaryParas.map(p => `<p>${esc(p)}</p>`).join('')}
-        </div>
+        <div class="opt-summary">${summaryParas.map(para => `<p>${esc(para)}</p>`).join('')}</div>
         <hr class="opt-rule" />` : ''}
 
-        ${skillsRows ? `
-        <div class="opt-section-title">Technical Skills</div>
-        <table class="opt-skills-table"><tbody>${skillsRows}</tbody></table>
-        <hr class="opt-rule" />` : ''}
+        ${skillsHtml}
 
         ${experienceHtml ? `
         <div class="opt-section-title">Professional Experience</div>
@@ -86,88 +74,14 @@ function renderOptimize(r, p) {
         <hr class="opt-rule" />` : ''}
 
         ${educationHtml ? `
-        <div class="opt-section-title">Education / Credentials</div>
+        <div class="opt-section-title">Education</div>
         ${educationHtml}` : ''}
 
-        ${langsHtml ? `
+        ${languagesHtml ? `
         <hr class="opt-rule" />
         <div class="opt-section-title">Languages</div>
-        <div class="opt-langs">${langsHtml}</div>` : ''}
+        <div class="opt-langs">${languagesHtml}</div>` : ''}
 
-
-      </div>
-    </div>`;
-}
-
-// ─── SCRATCH TEMPLATE ─────────────────────────────────────────────────────────
-
-function renderScratch(r, p) {
-  const contactHtml = [p.phone, p.email].filter(Boolean)
-    .map(v => `<strong>${esc(v)}</strong>`).join('') +
-    [p.location].filter(Boolean).map(v => `<span>${esc(v)}</span>`).join('');
-
-  const experienceHtml = (r.experience || []).map(job => `
-    <div class="scr-job">
-      <div class="scr-job-role">${esc(job.role)}</div>
-      <div class="scr-job-period">${esc(job.period)}</div>
-      <div class="scr-job-desc">${esc(job.description)}</div>
-    </div>`).join('');
-
-  const educationHtml = (r.education || []).map(e => `
-    <div class="scr-edu-entry">
-      <div class="scr-edu-degree">${esc(e.degree)}</div>
-      <div class="scr-edu-inst">${esc(e.institution)}</div>
-    </div>`).join('');
-
-  const practicalHtml = (r.practicalExperience || []).map(item => `<li>${esc(item)}</li>`).join('');
-
-  const skillsHtml = (r.skills || []).map(s => `<div class="scr-skill">${esc(s)}</div>`).join('');
-
-  const langsHtml = (r.languages || []).map(l => {
-    const name = typeof l === 'string' ? l : l.name;
-    const level = typeof l === 'string' ? '' : l.level;
-    const note = typeof l === 'string' ? '' : l.note;
-    return `
-      <div class="scr-lang">
-        <div class="scr-lang-name">${esc(name)} ${level ? `<span class="scr-lang-level">(${esc(level)})</span>` : ''}</div>
-        ${note ? `<div class="scr-lang-note">${esc(note)}</div>` : ''}
-      </div>`;
-  }).join('');
-
-  return `
-    <div class="page">
-      <div class="scr-page">
-        <div class="scr-header">
-          <div class="scr-name">${esc(p.name || '')}</div>
-          <div class="scr-contact">${contactHtml}</div>
-        </div>
-
-        <div class="scr-body">
-          <div class="scr-left">
-            ${experienceHtml ? `
-            <div class="scr-section-title">Experience</div>
-            ${experienceHtml}` : ''}
-
-            ${educationHtml ? `
-            <div class="scr-section-title">Education</div>
-            ${educationHtml}` : ''}
-
-            ${practicalHtml ? `
-            <div class="scr-section-title">Practical Experience</div>
-            <ul class="scr-practical">${practicalHtml}</ul>` : ''}
-
-          </div>
-
-          <div class="scr-right">
-            ${skillsHtml ? `
-            <div class="scr-section-title">Skills</div>
-            ${skillsHtml}` : ''}
-
-            ${langsHtml ? `
-            <div class="scr-section-title">Languages</div>
-            ${langsHtml}` : ''}
-          </div>
-        </div>
       </div>
     </div>`;
 }
