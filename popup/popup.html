@@ -212,6 +212,24 @@
       margin-bottom: 10px;
       min-height: 28px;
     }
+    .ats-disclaimer {
+      font-size: 11px;
+      color: #e07b00;
+      background: #fff8ec;
+      border: 1px solid #fcd9a0;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .ats-disclaimer.visible { display: block; }
+    .autofill-hint {
+      font-size: 11px;
+      color: #667eea;
+      text-align: center;
+      padding: 4px 0;
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -239,6 +257,8 @@
           <button class="mode-btn" data-mode="scratch">From Scratch</button>
         </div>
         <p class="mode-hint" id="modeHint">Keeps your real experience — rewrites keywords to pass ATS filters.</p>
+        <!-- FORM FILLING — halted -->
+        <!-- <p class="ats-disclaimer" id="atsDisclaimer">Requires your CV uploaded in Settings to work.</p> -->
         <button class="btn btn-primary" id="generateBtn">Generate Tailored CV</button>
       </div>
       <div class="status" id="status"></div>
@@ -266,7 +286,9 @@
         </div>
 
         <div class="actions">
-          <button class="btn btn-secondary" id="fillFormBtn">Fill Form</button>
+          <!-- FORM FILLING — halted -->
+          <!-- <button class="btn btn-secondary" id="fillFormBtn">Fill Form</button> -->
+          <!-- <p class="autofill-hint" id="autofillHint" style="display:none">Auto-fill is on — form will be filled automatically.</p> -->
           <button class="btn btn-secondary" id="previewBtn">Preview CV</button>
           <button class="btn btn-secondary" id="coverLetterBtn">Cover Letter</button>
         </div>
