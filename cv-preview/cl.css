@@ -1,0 +1,31 @@
+.page {
+  background: white;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 18mm 20mm;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 11pt;
+  color: #111;
+  line-height: 1.5;
+}
+
+.cl-header { text-align: center; margin-bottom: 10px; }
+.cl-name { font-size: 20pt; font-weight: 700; }
+.cl-location { font-size: 10pt; margin-top: 3px; color: #333; }
+.cl-contact { font-size: 10pt; color: #333; margin-top: 2px; }
+.cl-rule { border: none; border-top: 2px solid #111; margin: 10px 0 28px; }
+
+.cl-body { margin-bottom: 28px; }
+.cl-greeting { margin-bottom: 18px; }
+.cl-para { margin-bottom: 14px; text-align: justify; }
+
+.cl-sincerely { margin-bottom: 48px; }
+.cl-signature { margin-bottom: 4px; }
+
+#clPage.editing {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+  cursor: text;
+}

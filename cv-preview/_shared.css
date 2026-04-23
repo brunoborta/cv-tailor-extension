@@ -1,0 +1,38 @@
+body {
+  background: #e0e0e0;
+  padding: 20px;
+  font-family: -apple-system, sans-serif;
+}
+
+.toolbar {
+  background: #333;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.toolbar span { font-size: 13px; }
+.toolbar-actions { display: flex; align-items: center; gap: 10px; }
+.toolbar-hint { font-size: 12px; opacity: 0.6; }
+.toolbar button {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toolbar button:hover { background: var(--color-primary-dark); }
+
+#editBtn.active { background: #48bb78; }
+
+@media print {
+  body { background: white; padding: 0; }
+  .toolbar { display: none; }
+  .page { box-shadow: none; margin: 0; width: 100%; }
+}

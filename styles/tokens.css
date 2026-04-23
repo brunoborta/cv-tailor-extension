@@ -1,0 +1,19 @@
+:root {
+  --gradient-primary: linear-gradient(135deg, #667eea, #764ba2);
+  --color-primary: #667eea;
+  --color-primary-dark: #764ba2;
+  --color-primary-text: #5b21b6;
+  --color-primary-soft: #f0f2ff;
+  --color-primary-border: #c4b5fd;
+
+  --color-text: #1a1a2e;
+  --color-text-muted: #888;
+  --color-text-faint: #999;
+  --color-bg: #f8f9ff;
+  --color-surface: #ffffff;
+  --color-border: #e8eaf0;
+  --color-border-soft: #d0d3e0;
+
+  --color-error: #e53e3e;
+  --color-success: #38a169;
+}

@@ -1,0 +1,78 @@
+.page {
+  background: white;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.opt-page {
+  padding: 18mm 18mm 20mm;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 10.5pt;
+  color: #111;
+  line-height: 1.45;
+}
+
+.opt-header { text-align: center; margin-bottom: 4px; }
+.opt-name { font-size: 22pt; font-weight: 700; }
+.opt-title { font-size: 11pt; margin-top: 2px; }
+.opt-contact { font-size: 9.5pt; margin-top: 3px; color: #333; }
+.opt-rule { border: none; border-top: 2px solid #111; margin: 10px 0 14px; }
+.opt-rule-thin { border: none; border-top: 1px solid #ccc; margin: 10px 0; }
+
+.opt-section-title {
+  font-size: 10.5pt;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.opt-summary p { margin-bottom: 8px; text-align: justify; }
+
+.opt-skills-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+.opt-skills-table td { vertical-align: top; padding: 1px 0; font-size: 10pt; }
+.opt-skills-cat { font-style: italic; font-weight: 700; white-space: nowrap; padding-right: 8px; }
+
+.opt-job { margin-bottom: 14px; }
+.opt-job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+.opt-job-role { font-weight: 700; font-size: 10.5pt; }
+.opt-job-period { font-size: 9.5pt; font-weight: 400; margin-left: 6px; color: #333; }
+.opt-job-company { font-size: 10.5pt; }
+.opt-job-desc { font-style: italic; margin: 3px 0 5px; font-size: 10pt; text-align: justify; }
+.opt-bullets { list-style: none; padding: 0; margin-bottom: 6px; }
+.opt-bullets li { padding-left: 14px; position: relative; margin-bottom: 2px; font-size: 10pt; }
+.opt-bullets li::before { content: '▪'; position: absolute; left: 0; font-size: 9pt; }
+.opt-achievements-label { font-style: italic; font-size: 9.5pt; margin: 4px 0 3px; }
+
+.opt-edu-entry { text-align: center; margin-bottom: 8px; }
+.opt-edu-degree { font-weight: 700; }
+.opt-edu-inst { font-size: 10pt; }
+
+.opt-langs { text-align: center; font-size: 10pt; }
+
+.opt-skills-flat { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.opt-skill-chip {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 9.5pt;
+}
+
+#cvContainer.editing .opt-page {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+  cursor: text;
+}
+
+@media print {
+  .opt-page { padding: 12mm 14mm; }
+}
