@@ -1,18 +1,5 @@
-const DEFAULT_MODELS = {
-  deepseek: 'deepseek-chat',
-  groq: 'llama-3.3-70b-versatile',
-  claude: 'claude-haiku-4-5-20251001',
-  openai: 'gpt-4o-mini',
-  custom: '',
-};
-
-const API_KEY_HINTS = {
-  deepseek: 'Get a free key at platform.deepseek.com',
-  groq: 'Get a free key at console.groq.com',
-  claude: 'Get a key at console.anthropic.com',
-  openai: 'Get a key at platform.openai.com',
-  custom: 'Enter the API key for your custom provider',
-};
+import { DEFAULT_MODELS, API_KEY_HINTS } from '../lib/ai-client.js';
+import { getProfile, setProfile, patchProfile, getAiConfig, setAiConfig } from '../lib/storage.js';
 
 let languages = [];
 let currentPdfBase64 = null;
@@ -35,7 +22,7 @@ async function init() {
     btn.innerHTML = isHidden ? SVG_EYE_OFF : SVG_EYE;
   });
 
-  const { profile, aiConfig } = await chrome.storage.local.get(['profile', 'aiConfig']);
+  const [profile, aiConfig] = await Promise.all([getProfile(), getAiConfig()]);
   if (profile) loadProfile(profile);
   if (aiConfig) loadAIConfig(aiConfig);
 }
@@ -114,6 +101,8 @@ function setupCVUpload() {
         currentPdfFileName = null;
       }
       setDropZoneState('done', file.name, text.length);
+      await patchProfile({ cvText: text, cvFileName: currentPdfFileName, cvPdfBase64: currentPdfBase64 });
+      document.getElementById('uploadHint').textContent = `${text.length} characters extracted — saved.`;
     } catch (err) {
       document.getElementById('uploadHint').textContent = '✕ ' + err.message;
       clearFile();
@@ -308,7 +297,7 @@ async function save() {
     autofill: document.getElementById('autofill').checked,
   };
 
-  await chrome.storage.local.set({ profile, aiConfig });
+  await Promise.all([setProfile(profile), setAiConfig(aiConfig)]);
 
   const overlay = document.getElementById('saveOverlay');
   overlay.classList.add('visible');
