@@ -1,37 +1,21 @@
+import { getPreview, getPrintHtml, clearPrintHtml } from '../lib/storage.js';
+import { setupPreviewPage, triggerPrint } from '../lib/print-page.js';
+
 async function init() {
-  const isPrint = new URLSearchParams(location.search).has('print');
+  const isPrint = setupPreviewPage({
+    title: 'CV Preview',
+    printBtnLabel: 'Print / Save as PDF',
+    contentId: 'cvContainer',
+    editSelector: '.opt-page',
+    storageKind: 'cv',
+    htmlPath: 'cv-preview/index.html',
+  });
 
-  if (isPrint) {
-    document.querySelector('.toolbar').style.display = 'none';
-  } else {
-    let isEditing = false;
-    document.getElementById('editBtn').addEventListener('click', () => {
-      isEditing = !isEditing;
-      const page = document.querySelector('.opt-page');
-      if (page) page.contentEditable = isEditing ? 'true' : 'false';
-      document.getElementById('cvContainer').classList.toggle('editing', isEditing);
-      const btn = document.getElementById('editBtn');
-      btn.textContent = isEditing ? 'Done' : 'Edit';
-      btn.classList.toggle('active', isEditing);
-    });
-
-    // Serialize current DOM (preserving any edits) into storage before opening the print tab
-    document.getElementById('printBtn').addEventListener('click', () => {
-      const editedHtml = document.getElementById('cvContainer').innerHTML;
-      chrome.storage.local.set({ cv_tailor_print_html: editedHtml }, () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/index.html') + '?print=1' });
-      });
-    });
-  }
-
-  const { cv_tailor_preview, cv_tailor_print_html } = await chrome.storage.local.get([
-    'cv_tailor_preview',
-    'cv_tailor_print_html',
-  ]);
+  const [cv_tailor_preview, cv_tailor_print_html] = await Promise.all([getPreview(), getPrintHtml('cv')]);
 
   if (isPrint && cv_tailor_print_html) {
     document.getElementById('cvContainer').innerHTML = cv_tailor_print_html;
-    chrome.storage.local.remove('cv_tailor_print_html');
+    clearPrintHtml('cv');
     const { jobTitle, jobCompany } = cv_tailor_preview || {};
     document.title = ['CV', jobCompany, jobTitle].filter(Boolean).join(' - ');
   } else {
@@ -53,27 +37,30 @@ async function init() {
     document.getElementById('cvContainer').innerHTML = renderCV(result, personal);
   }
 
-  if (isPrint) {
-    // MV3 blocks window.print() from chrome-extension:// pages via inline handlers (CSP) and
-    // also blocks it when called directly on the preview tab. Workaround: open a dedicated
-    // ?print=1 tab via chrome.runtime.getURL so the call comes from a proper script context,
-    // then close this tab once the print dialog is dismissed.
-    window.addEventListener('afterprint', () => window.close());
-    window.print();
-  }
+  if (isPrint) triggerPrint();
 }
 
 function renderCV(cvData, personal) {
   const contactLine = [personal.location, personal.phone, personal.email].filter(Boolean).join(' • ');
   const summaryParas = Array.isArray(cvData.summary) ? cvData.summary : [cvData.summary].filter(Boolean);
 
-  const skillsHtml = (cvData.skills || []).length
-    ? `<div class="opt-section-title">Skills</div>
-       <div class="opt-skills-flat">${cvData.skills.map(skill => `<span class="opt-skill-chip">${esc(skill)}</span>`).join('')}</div>
-       <hr class="opt-rule" />`
-    : '';
+  const sections = [];
 
-  const experienceHtml = (cvData.experience || []).map(job => `
+  if (summaryParas.length) {
+    sections.push(
+      `<div class="opt-section-title">Summary</div>` +
+      `<div class="opt-summary">${summaryParas.map(para => `<p>${esc(para)}</p>`).join('')}</div>`
+    );
+  }
+
+  if ((cvData.skills || []).length) {
+    sections.push(
+      `<div class="opt-section-title">Skills</div>` +
+      `<div class="opt-skills-flat">${cvData.skills.map(skill => `<span class="opt-skill-chip">${esc(skill)}</span>`).join('')}</div>`
+    );
+  }
+
+  const experienceItems = (cvData.experience || []).map(job => `
     <div class="opt-job">
       <div class="opt-job-header">
         <div>
@@ -86,13 +73,27 @@ function renderCV(cvData, personal) {
       ${job.bullets?.length ? `<ul class="opt-bullets">${job.bullets.map(bullet => `<li>${esc(bullet)}</li>`).join('')}</ul>` : ''}
     </div>`).join('');
 
-  const educationHtml = (cvData.education || []).map(entry => `
+  if (experienceItems) {
+    sections.push(`<div class="opt-section-title">Professional Experience</div>` + experienceItems);
+  }
+
+  const educationItems = (cvData.education || []).map(entry => `
     <div class="opt-edu-entry">
       <div class="opt-edu-degree">${esc(entry.degree)}</div>
       <div class="opt-edu-inst">${esc(entry.institution)}</div>
     </div>`).join('');
 
-  const languagesHtml = (cvData.languages || []).join(' • ');
+  if (educationItems) {
+    sections.push(`<div class="opt-section-title">Education</div>` + educationItems);
+  }
+
+  const languagesLine = (cvData.languages || []).join(' • ');
+  if (languagesLine) {
+    sections.push(
+      `<div class="opt-section-title">Languages</div>` +
+      `<div class="opt-langs">${languagesLine}</div>`
+    );
+  }
 
   return `
     <div class="page">
@@ -107,26 +108,7 @@ function renderCV(cvData, personal) {
 
         <hr class="opt-rule" />
 
-        ${summaryParas.length ? `
-        <div class="opt-section-title">Summary</div>
-        <div class="opt-summary">${summaryParas.map(para => `<p>${esc(para)}</p>`).join('')}</div>
-        <hr class="opt-rule" />` : ''}
-
-        ${skillsHtml}
-
-        ${experienceHtml ? `
-        <div class="opt-section-title">Professional Experience</div>
-        ${experienceHtml}
-        <hr class="opt-rule" />` : ''}
-
-        ${educationHtml ? `
-        <div class="opt-section-title">Education</div>
-        ${educationHtml}` : ''}
-
-        ${languagesHtml ? `
-        <hr class="opt-rule" />
-        <div class="opt-section-title">Languages</div>
-        <div class="opt-langs">${languagesHtml}</div>` : ''}
+        ${sections.join('<hr class="opt-rule" />')}
 
       </div>
     </div>`;

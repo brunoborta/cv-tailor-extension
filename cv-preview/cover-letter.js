@@ -1,37 +1,21 @@
+import { getPreview, getPrintHtml, clearPrintHtml } from '../lib/storage.js';
+import { setupPreviewPage, triggerPrint } from '../lib/print-page.js';
+
 async function init() {
-  const isPrint = new URLSearchParams(location.search).has('print');
+  const isPrint = setupPreviewPage({
+    title: 'Cover Letter',
+    printBtnLabel: 'Save as PDF',
+    contentId: 'clPage',
+    editSelector: null,
+    storageKind: 'cl',
+    htmlPath: 'cv-preview/cover-letter.html',
+  });
 
-  if (isPrint) {
-    document.querySelector('.toolbar').style.display = 'none';
-  } else {
-    let isEditing = false;
-    document.getElementById('editBtn').addEventListener('click', () => {
-      isEditing = !isEditing;
-      const page = document.getElementById('clPage');
-      page.contentEditable = isEditing ? 'true' : 'false';
-      page.classList.toggle('editing', isEditing);
-      const btn = document.getElementById('editBtn');
-      btn.textContent = isEditing ? 'Done' : 'Edit';
-      btn.classList.toggle('active', isEditing);
-    });
-
-    // Serialize current DOM (preserving any edits) into storage before opening the print tab
-    document.getElementById('printBtn').addEventListener('click', () => {
-      const editedHtml = document.getElementById('clPage').innerHTML;
-      chrome.storage.local.set({ cv_tailor_print_cl_html: editedHtml }, () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/cover-letter.html') + '?print=1' });
-      });
-    });
-  }
-
-  const { cv_tailor_preview, cv_tailor_print_cl_html } = await chrome.storage.local.get([
-    'cv_tailor_preview',
-    'cv_tailor_print_cl_html',
-  ]);
+  const [cv_tailor_preview, cv_tailor_print_cl_html] = await Promise.all([getPreview(), getPrintHtml('cl')]);
 
   if (isPrint && cv_tailor_print_cl_html) {
     document.getElementById('clPage').innerHTML = cv_tailor_print_cl_html;
-    chrome.storage.local.remove('cv_tailor_print_cl_html');
+    clearPrintHtml('cl');
     const { jobTitle, jobCompany } = cv_tailor_preview || {};
     document.title = ['CL', jobCompany, jobTitle].filter(Boolean).join(' - ');
   } else if (!cv_tailor_preview?.result?.coverLetter) {
@@ -72,14 +56,7 @@ async function init() {
     `;
   }
 
-  if (isPrint) {
-    // MV3 blocks window.print() from chrome-extension:// pages via inline handlers (CSP) and
-    // also blocks it when called directly on the preview tab. Workaround: open a dedicated
-    // ?print=1 tab via chrome.runtime.getURL so the call comes from a proper script context,
-    // then close this tab once the print dialog is dismissed.
-    window.addEventListener('afterprint', () => window.close());
-    window.print();
-  }
+  if (isPrint) triggerPrint();
 }
 
 function esc(str) {
