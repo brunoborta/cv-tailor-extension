@@ -44,6 +44,7 @@ function setupPresets() {
       const provider = btn.dataset.provider;
       document.getElementById('provider').value = provider;
       document.getElementById('providerLabel').textContent = btn.textContent.replace(/✓free/i, '').trim();
+      document.getElementById('model').value = '';
       onProviderChange();
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -223,9 +224,7 @@ function onProviderChange() {
   const hintEl = document.getElementById('apiKeyHint');
   const baseUrlGroup = document.getElementById('baseUrlGroup');
 
-  if (DEFAULT_MODELS[provider] && !modelInput.value) {
-    modelInput.value = DEFAULT_MODELS[provider];
-  }
+  modelInput.placeholder = DEFAULT_MODELS[provider] || '';
   hintEl.textContent = API_KEY_HINTS[provider] || '';
   baseUrlGroup.style.display = provider === 'custom' ? 'block' : 'none';
 
@@ -263,7 +262,8 @@ function loadAIConfig(config) {
   const provider = config.provider || 'deepseek';
   document.getElementById('provider').value = provider;
   document.getElementById('apiKey').value = config.apiKey || '';
-  document.getElementById('model').value = config.model || '';
+  const savedModel = config.model || '';
+  document.getElementById('model').value = savedModel === DEFAULT_MODELS[provider] ? '' : savedModel;
   document.getElementById('baseUrl').value = config.baseUrl || '';
   document.getElementById('outputLanguage').value = config.outputLanguage || 'auto';
   document.getElementById('autofill').checked = config.autofill || false;
