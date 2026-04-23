@@ -1,10 +1,10 @@
+import { getProfile, getAiConfig, getPreview, setPreview, clearPreview } from '../lib/storage.js';
+
 let currentTab = null;
 let jobInfo = null;
 let cvResult = null;
 let userProfile = null;
 let generationMode = 'optimize';
-// let cachedFields = null;    // FORM FILLING — halted
-// let cachedAiAnswers = null; // FORM FILLING — halted
 
 const modeHints = {
   optimize: 'Keeps your real experience — rewrites keywords to pass ATS filters.',
@@ -23,12 +23,8 @@ async function init() {
       btn.classList.add('active');
       generationMode = btn.dataset.mode;
       document.getElementById('modeHint').textContent = modeHints[generationMode];
-      // FORM FILLING — halted
-      // document.getElementById('atsDisclaimer').classList.toggle('visible', generationMode === 'optimize');
     });
   });
-  // FORM FILLING — halted
-  // document.getElementById('fillFormBtn').addEventListener('click', fillForm);
   document.getElementById('previewBtn').addEventListener('click', previewPDF);
   document.getElementById('coverLetterBtn').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('cv-preview/cover-letter.html') });
@@ -37,18 +33,22 @@ async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   currentTab = tab;
 
-  const { profile, aiConfig, cv_tailor_preview } = await chrome.storage.local.get(['profile', 'aiConfig', 'cv_tailor_preview']);
+  const [profile, aiConfig, cv_tailor_preview] = await Promise.all([getProfile(), getAiConfig(), getPreview()]);
   userProfile = profile;
 
-  // FORM FILLING — halted
-  // const autofill = aiConfig?.autofill || false;
-  // document.getElementById('fillFormBtn').style.display = autofill ? 'none' : '';
-  // document.getElementById('autofillHint').style.display = autofill ? 'block' : 'none';
-
-  if (!profile?.cvText || !aiConfig?.apiKey) {
+  if (!aiConfig?.apiKey) {
     document.getElementById('noProfile').style.display = 'block';
     document.getElementById('mainContent').style.display = 'none';
     return;
+  }
+
+  if (!profile?.cvText) {
+    const optimizeBtn = document.querySelector('[data-mode="optimize"]');
+    optimizeBtn.disabled = true;
+    optimizeBtn.title = 'Upload your CV in Settings to use ATS Optimize';
+    generationMode = 'scratch';
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'scratch'));
+    document.getElementById('modeHint').textContent = modeHints.scratch;
   }
 
   if (cv_tailor_preview?.result) {
@@ -73,7 +73,7 @@ function formatAgo(isoDate) {
 }
 
 async function resetCV() {
-  await chrome.storage.local.remove('cv_tailor_preview');
+  await clearPreview();
   cvResult = null;
   document.getElementById('results').classList.remove('visible');
   document.getElementById('savedLabel').textContent = '';
@@ -106,7 +106,7 @@ async function getJobInfo() {
     }
 
     setStatus('<span class="spinner"></span>Detecting job…', false);
-    const { aiConfig } = await chrome.storage.local.get('aiConfig');
+    const aiConfig = await getAiConfig();
 
     if (!aiConfig?.apiKey) {
       document.getElementById('jobTitle').textContent = 'No API key — open Settings';
@@ -127,7 +127,7 @@ async function getJobInfo() {
       return;
     }
 
-    jobInfo = res.result;
+    jobInfo = res;
     jobInfo.rawText = pageText;
     console.log('[CV Tailor] parsed job:', jobInfo);
 
@@ -152,7 +152,7 @@ async function generateCV() {
   document.getElementById('results').classList.remove('visible');
 
   try {
-    const { profile, aiConfig } = await chrome.storage.local.get(['profile', 'aiConfig']);
+    const [profile, aiConfig] = await Promise.all([getProfile(), getAiConfig()]);
 
     if (!aiConfig?.apiKey) {
       setStatus('No API key configured. Open Settings.', true);
@@ -164,56 +164,33 @@ async function generateCV() {
       return;
     }
 
-    // FORM FILLING — halted
-    // cachedFields = null;
-    // cachedAiAnswers = null;
-    const [res] = await Promise.all([
-      chrome.runtime.sendMessage({
-        type: 'GENERATE_CV',
-        payload: {
-          userProfile: profile,
-          jobInfo,
-          aiConfig,
-          mode: generationMode,
-        },
-      }),
-      // FORM FILLING — halted
-      // chrome.tabs.sendMessage(currentTab.id, { type: 'COLLECT_FIELDS' })
-      //   .then(async fields => {
-      //     cachedFields = fields;
-      //     if (!fields?.length) return;
-      //     const aiRes = await chrome.runtime.sendMessage({
-      //       type: 'AI_FILL_FORM',
-      //       payload: { fields, profile, jobTitle: jobInfo?.title, aiConfig },
-      //     });
-      //     if (!aiRes.error) cachedAiAnswers = aiRes.answers;
-      //   })
-      //   .catch(() => {}),
-      Promise.resolve(),
-    ]);
+    const res = await chrome.runtime.sendMessage({
+      type: 'GENERATE_CV',
+      payload: {
+        userProfile: profile,
+        jobInfo,
+        aiConfig,
+        mode: generationMode,
+      },
+    });
 
     if (res.error) {
       setStatus(res.error, true);
       return;
     }
 
-    cvResult = res.result;
+    cvResult = res;
     renderResults(cvResult);
     document.getElementById('generateSection').style.display = 'none';
     clearStatus();
 
-    // FORM FILLING — halted
-    // if (aiConfig?.autofill) fillForm();
-
-    await chrome.storage.local.set({
-      cv_tailor_preview: {
-        result: cvResult,
-        profile,
-        jobTitle: jobInfo?.title,
-        jobCompany: jobInfo?.company,
-        mode: generationMode,
-        generatedAt: new Date().toISOString(),
-      },
+    await setPreview({
+      result: cvResult,
+      profile,
+      jobTitle: jobInfo?.title,
+      jobCompany: jobInfo?.company,
+      mode: generationMode,
+      generatedAt: new Date().toISOString(),
     });
   } catch (err) {
     setStatus(err.message, true);
@@ -270,51 +247,6 @@ function renderResults(data) {
   document.getElementById('resCover').textContent = Array.isArray(cl) ? cl[0] : (cl || '');
   document.getElementById('results').classList.add('visible');
 }
-
-// FORM FILLING — halted
-// async function fillForm() {
-//   if (!cvResult) return;
-//   const { profile, aiConfig } = await chrome.storage.local.get(['profile', 'aiConfig']);
-//   try {
-//     setStatus('Filling known fields…');
-//     await chrome.tabs.sendMessage(currentTab.id, {
-//       type: 'FILL_FORM',
-//       payload: {
-//         personal: profile?.personal || {},
-//         cvResult,
-//         cvPdfBase64: profile?.cvPdfBase64 || null,
-//         cvFileName: profile?.cvFileName || null,
-//       },
-//     });
-//     let answers = cachedAiAnswers;
-//     cachedAiAnswers = null;
-//     if (!answers) {
-//       setStatus('Asking AI for remaining fields…');
-//       let fields = cachedFields;
-//       if (!fields) fields = await chrome.tabs.sendMessage(currentTab.id, { type: 'COLLECT_FIELDS' });
-//       cachedFields = null;
-//       if (fields?.length) {
-//         const res = await chrome.runtime.sendMessage({
-//           type: 'AI_FILL_FORM',
-//           payload: { fields, profile, jobTitle: jobInfo?.title, aiConfig },
-//         });
-//         if (res.error) {
-//           setStatus('Partial fill — AI error: ' + res.error, true);
-//           setTimeout(clearStatus, 3000);
-//           return;
-//         }
-//         answers = res.answers || {};
-//       }
-//     }
-//     if (answers) {
-//       await chrome.tabs.sendMessage(currentTab.id, { type: 'APPLY_AI_FIELDS', answers });
-//     }
-//     setStatus('Form filled!');
-//     setTimeout(clearStatus, 2000);
-//   } catch (err) {
-//     setStatus('Could not fill form: ' + err.message, true);
-//   }
-// }
 
 function previewPDF() {
   const url = chrome.runtime.getURL('cv-preview/index.html');
