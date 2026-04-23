@@ -1,5 +1,6 @@
 import { getPreview, getPrintHtml, clearPrintHtml } from '../lib/storage.js';
 import { setupPreviewPage, triggerPrint } from '../lib/print-page.js';
+import { esc } from '../lib/util.js';
 
 async function init() {
   const isPrint = setupPreviewPage({
@@ -57,14 +58,6 @@ async function init() {
   }
 
   if (isPrint) triggerPrint();
-}
-
-function esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 document.addEventListener('DOMContentLoaded', init);
