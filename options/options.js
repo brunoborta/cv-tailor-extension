@@ -266,7 +266,6 @@ function loadAIConfig(config) {
   document.getElementById('model').value = savedModel === DEFAULT_MODELS[provider] ? '' : savedModel;
   document.getElementById('baseUrl').value = config.baseUrl || '';
   document.getElementById('outputLanguage').value = config.outputLanguage || 'auto';
-  document.getElementById('autofill').checked = config.autofill || false;
 
   const activeBtn = document.querySelector(`.preset-btn[data-provider="${provider}"]`);
   if (activeBtn) {
@@ -294,7 +293,6 @@ async function save() {
     model: document.getElementById('model').value.trim() || DEFAULT_MODELS[provider],
     baseUrl: document.getElementById('baseUrl').value.trim() || undefined,
     outputLanguage: document.getElementById('outputLanguage').value,
-    autofill: document.getElementById('autofill').checked,
   };
 
   await Promise.all([setProfile(profile), setAiConfig(aiConfig)]);
