@@ -97,13 +97,11 @@ async function getJobInfo() {
           .catch(() => null)
       )
     );
-    const pageText = results
+    const fullText = results
       .filter(r => r?.pageText)
       .map(r => r.pageText)
       .join('\n\n---\n\n');
-
-    console.log('[CV Tailor] total frames:', frames.length);
-    console.log('[CV Tailor] combined pageText length:', pageText.length);
+    const pageText = fullText.slice(0, 10000);
 
     if (!pageText) {
       document.getElementById('jobTitle').textContent = 'Could not read page';
@@ -135,8 +133,7 @@ async function getJobInfo() {
     }
 
     jobInfo = res;
-    jobInfo.rawText = pageText;
-    console.log('[CV Tailor] parsed job:', jobInfo);
+    jobInfo.rawText = fullText;
 
     document.getElementById('jobTitle').textContent =
       [jobInfo.company, jobInfo.title].filter(Boolean).join(' • ') || 'No job detected';
