@@ -60,9 +60,14 @@ async function init() {
     renderResults(cvResult);
     const ago = formatAgo(cv_tailor_preview.generatedAt);
     document.getElementById('savedLabel').textContent = `Saved · ${ago}`;
+    const { jobTitle, jobCompany } = cv_tailor_preview;
+    document.getElementById('jobTitle').textContent =
+      [jobCompany, jobTitle].filter(Boolean).join(' • ') || 'Job info unavailable';
+    document.getElementById('jobMeta').textContent = '';
+    jobInfo = { title: jobTitle, company: jobCompany };
+  } else {
+    getJobInfo();
   }
-
-  getJobInfo();
 }
 
 function formatAgo(isoDate) {
@@ -75,9 +80,11 @@ function formatAgo(isoDate) {
 async function resetCV() {
   await clearPreview();
   cvResult = null;
+  jobInfo = null;
   document.getElementById('results').classList.remove('visible');
   document.getElementById('savedLabel').textContent = '';
   document.getElementById('generateSection').style.display = 'block';
+  getJobInfo();
 }
 
 async function getJobInfo() {
