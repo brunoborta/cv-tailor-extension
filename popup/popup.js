@@ -16,6 +16,7 @@ async function init() {
   document.getElementById('openOptionsFromEmpty')?.addEventListener('click', openOptions);
   document.getElementById('generateBtn').addEventListener('click', generateCV);
   document.getElementById('resetBtn').addEventListener('click', resetCV);
+  document.getElementById('refreshJobBtn').addEventListener('click', refreshJob);
 
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -87,7 +88,25 @@ async function resetCV() {
   getJobInfo();
 }
 
-async function getJobInfo() {
+async function refreshJob() {
+  await clearPreview();
+  cvResult = null;
+  jobInfo = null;
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('savedLabel').textContent = '';
+  document.getElementById('generateSection').style.display = 'block';
+  getJobInfo({ forceRefresh: true });
+}
+
+function syncRefreshBtnVisibility() {
+  const resultsVisible = document.getElementById('results').classList.contains('visible');
+  document.getElementById('refreshJobBtn').style.display = resultsVisible ? 'none' : '';
+}
+
+async function getJobInfo({ forceRefresh = false } = {}) {
+  document.getElementById('refreshJobBtn').style.display = 'none';
+  document.getElementById('jobTitle').textContent = 'Detecting job…';
+  document.getElementById('jobMeta').textContent = 'Reading page';
   setStatus('<span class="spinner"></span>Reading page…', false);
   try {
     const frames = await chrome.webNavigation.getAllFrames({ tabId: currentTab.id });
@@ -97,11 +116,14 @@ async function getJobInfo() {
           .catch(() => null)
       )
     );
-    const fullText = results
-      .filter(r => r?.pageText)
-      .map(r => r.pageText)
-      .join('\n\n---\n\n');
-    const pageText = fullText.slice(0, 10000);
+    const seen = [];
+    for (const r of results) {
+      const t = r?.pageText?.trim();
+      if (!t) continue;
+      if (seen.some(s => s.includes(t) || t.includes(s))) continue;
+      seen.push(t);
+    }
+    const pageText = seen.join('\n\n---\n\n').slice(0, 12000);
 
     if (!pageText) {
       document.getElementById('jobTitle').textContent = 'Could not read page';
@@ -122,7 +144,7 @@ async function getJobInfo() {
 
     const res = await chrome.runtime.sendMessage({
       type: 'PARSE_JOB_PAGE',
-      payload: { pageText, aiConfig },
+      payload: { pageText, aiConfig, forceRefresh },
     });
 
     if (res.error) {
@@ -133,7 +155,6 @@ async function getJobInfo() {
     }
 
     jobInfo = res;
-    jobInfo.rawText = fullText;
 
     document.getElementById('jobTitle').textContent =
       [jobInfo.company, jobInfo.title].filter(Boolean).join(' • ') || 'No job detected';
@@ -146,6 +167,8 @@ async function getJobInfo() {
     document.getElementById('jobTitle').textContent = 'Could not read page';
     document.getElementById('jobMeta').textContent = 'Try refreshing the tab';
     clearStatus();
+  } finally {
+    syncRefreshBtnVisibility();
   }
 }
 
@@ -154,6 +177,7 @@ async function generateCV() {
   btn.disabled = true;
   setStatus('<span class="spinner"></span>Generating…', false);
   document.getElementById('results').classList.remove('visible');
+  document.getElementById('refreshJobBtn').style.display = 'none';
 
   try {
     const [profile, aiConfig] = await Promise.all([getProfile(), getAiConfig()]);
@@ -188,18 +212,21 @@ async function generateCV() {
     document.getElementById('generateSection').style.display = 'none';
     clearStatus();
 
+    const generatedAt = new Date().toISOString();
     await setPreview({
       result: cvResult,
       profile,
       jobTitle: jobInfo?.title,
       jobCompany: jobInfo?.company,
       mode: generationMode,
-      generatedAt: new Date().toISOString(),
+      generatedAt,
     });
+    document.getElementById('savedLabel').textContent = `Saved · ${formatAgo(generatedAt)}`;
   } catch (err) {
     setStatus(err.message, true);
   } finally {
     btn.disabled = false;
+    syncRefreshBtnVisibility();
   }
 }
 
@@ -250,6 +277,7 @@ function renderResults(data) {
   const cl = data.coverLetter;
   document.getElementById('resCover').textContent = Array.isArray(cl) ? cl[0] : (cl || '');
   document.getElementById('results').classList.add('visible');
+  syncRefreshBtnVisibility();
 }
 
 function previewPDF() {

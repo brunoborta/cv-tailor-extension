@@ -22,7 +22,11 @@ body {
   background: white;
   border-bottom: 1px solid var(--color-border);
   padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+.job-info-text { flex: 1; min-width: 0; }
 .job-title {
   font-weight: 600;
   font-size: 13px;
@@ -33,6 +37,19 @@ body {
   text-overflow: ellipsis;
 }
 .job-meta { font-size: 11px; color: var(--color-text-muted); }
+.btn-refresh-job {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.btn-refresh-job:hover:not(:disabled) { background: var(--color-primary-soft); color: var(--color-primary-dark); }
+.btn-refresh-job:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .main { padding: 14px 16px; }
 
