@@ -1,5 +1,7 @@
 import { callAI } from './lib/ai-client.js';
 import { buildParseJobPrompts, buildCVPrompts } from './lib/prompts.js';
+import { hashText } from './lib/util.js';
+import { getJobCache, setJobCache } from './lib/storage.js';
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'GENERATE_CV') {
@@ -16,12 +18,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
-async function parseJobPage({ pageText, aiConfig }) {
-  const { system, user } = buildParseJobPrompts(pageText);
-  return callAI(system, user, aiConfig);
+async function parseJobPage({ pageText, aiConfig, forceRefresh }) {
+  const hash = await hashText(pageText);
+  if (!forceRefresh) {
+    const cached = await getJobCache(hash);
+    if (cached) return cached;
+  }
+
+  const prompts = buildParseJobPrompts(pageText);
+  const result = await callAI(prompts, aiConfig);
+  await setJobCache(hash, result);
+  return result;
 }
 
 async function handleGenerateCV({ userProfile, jobInfo, aiConfig, mode }) {
-  const { system, user } = buildCVPrompts(userProfile, jobInfo, aiConfig, mode);
-  return callAI(system, user, aiConfig);
+  const prompts = buildCVPrompts(userProfile, jobInfo, aiConfig, mode);
+  return callAI(prompts, aiConfig);
 }
